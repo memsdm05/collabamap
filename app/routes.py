@@ -1,7 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 
 from models import Event
+from schemas import EventCreate, Point
+from deps import get_coordinates
+
+
 
 api = APIRouter(
     prefix="/api",
@@ -20,12 +24,20 @@ async def get_events():
         raise HTTPException(status_code=500, detail=f"Error retrieving events: {str(e)}")
 
 @api.post("/events", response_model=Event)
-async def create_event(event: Event):
+async def create_event(
+    params: EventCreate,
+    coords: Point = Depends(get_coordinates)
+):
     """
     Create a new event.
     """
     try:
-        await event.insert()
+        event = Event(
+            title=params.title,
+            description=params.description,
+            location=coords
+        )
+        await event.save()
         return event
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating event: {str(e)}")
@@ -42,3 +54,4 @@ async def get_event(event_id: str):
         return event
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving event: {str(e)}")
+    

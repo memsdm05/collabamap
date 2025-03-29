@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes import api
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
+from fastapi.staticfiles import StaticFiles
+
+
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
@@ -45,10 +48,10 @@ app.add_middleware(
 # Include the API router
 app.include_router(api)
 
-
-@app.get("/")
-async def index():
-    return {"foo": "bar"}
+app.mount(
+    "/",
+    StaticFiles(directory="frontend/dist", html=True)
+)
 
 
 if __name__ == "__main__":
