@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { HomePage } from "./HomePage.jsx";
+import { HomePage } from "./HomePage.js";
+import { EventMap } from "./EventMap.jsx";
 
 import "./index.css";
 
@@ -12,6 +13,6 @@ if (!root) {
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <HomePage />
+    <EventMap />
   </React.StrictMode>,
 );
