@@ -1,23 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import api
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 
-
-
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
-from models import Event
 import os
 
+from .routes import api
+from .models import Event
 
 load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    client = AsyncIOMotorClient('mongodb://collabamap:collabamap@localhost:27017')
+    client = AsyncIOMotorClient(os.environ["MONGODB_URI"])
     
     # Initialize Beanie with the MongoDB client and document models
     await init_beanie(

@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 from pydantic import BaseModel
 from beanie import Document
-from schemas import Point
+from .schemas import Point
 
 class Event(Document):
     title: str

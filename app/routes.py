@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 
-from models import Event
-from schemas import EventCreate, Point
-from deps import get_coordinates
+from .models import Event
+from .schemas import EventCreate, Point
+from .deps import get_coordinates
 
 
 

@@ -1,7 +1,7 @@
 from fastapi import Depends, Query, status
 from typing import Tuple
 from fastapi import HTTPException
-from schemas import Point
+from .schemas import Point
 
 async def get_coordinates(
     lat: float = Query(..., description="Latitude coordinate"),
@@ -35,3 +35,4 @@ async def get_coordinates(
         )
     
     return Point(coordinates=[lat, lng])
+
