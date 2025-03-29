@@ -5,7 +5,7 @@ import { pluginReact } from "@rsbuild/plugin-react";
 export default defineConfig({
   plugins: [pluginReact()],
   html: {
-    favicon: "src/assets/favicon.ico",
+    favicon: "../assets/favicon.ico",
     title: "Loco SaaS Starter",
   },
   server: {
