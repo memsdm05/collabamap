@@ -1,14 +1,39 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from routes import api
+from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 
-# Initialize FastAPI app
+from motor.motor_asyncio import AsyncIOMotorClient
+from beanie import init_beanie
+from models import Event
+import os
+
+
+load_dotenv()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    client = AsyncIOMotorClient('mongodb://collabamap:collabamap@localhost:27017')
+    
+    # Initialize Beanie with the MongoDB client and document models
+    await init_beanie(
+        database=client.collabamap,
+        document_models=[Event]
+    )
+    
+    print("Connected to MongoDB and initialized Beanie ODM")
+
+    yield
+
+
 app = FastAPI(
     title="CollabaMap API",
     description="API for collaborative mapping application",
     version="0.1.0",
+    lifespan=lifespan
 )
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow all origins in development
@@ -17,6 +42,16 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
+# Include the API router
+app.include_router(api)
+
+
 @app.get("/")
-async def root():
-    return {"message": "Welcome to CollabaMap API"}
+async def index():
+    return {"foo": "bar"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
