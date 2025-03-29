@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://collabamap:collabamap@mongodb:27017
+    restart: unless-stopped
+
   mongodb:
     image: mongo:latest
     container_name: mongodb
