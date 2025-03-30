@@ -336,19 +336,32 @@ function App() {
            setProximityError(appConfig ? "Current location unavailable." : "Configuration not loaded.");
            return;
        }
+
        const clickedPosition = { lat: event.detail.latLng.lat, lng: event.detail.latLng.lng };
        const distanceMeters = calculateDistance(currentUserPosition, clickedPosition);
        const creationRadiusMeters = appConfig.event_creation_radius;
-       if (distanceMeters <= creationRadiusMeters) {
-            // Reset details with 'event' as default category when placing marker
+
+       // Check if the click is inside existing event radius
+       const isInsideExistingEvent = events.some(existingEvent => {
+           if (!existingEvent.position) return false;
+           const distanceToExistingEvent = calculateDistance(clickedPosition, existingEvent.position);
+           return distanceToExistingEvent <= appConfig.event_radius;
+       });
+
+       if (distanceMeters <= creationRadiusMeters && !isInsideExistingEvent) {
+           // Reset details with 'event' as default category when placing marker
            setNewEventDetails({ title: '', description: '', category: 'event', startTime: '', endTime: '' });
            setTemporaryMarkerPosition(clickedPosition);
            setProximityError(null);
        } else {
            setTemporaryMarkerPosition(null);
-           setProximityError(`Must be within ${formatDistance(creationRadiusMeters)} to add event.`);
+           if (isInsideExistingEvent) {
+               setProximityError("Cannot create event inside another event's radius.");
+           } else {
+               setProximityError(`Must be within ${formatDistance(creationRadiusMeters)} to add event.`);
+           }
        }
-   }, [currentUserPosition, appConfig]);
+   }, [currentUserPosition, appConfig, events]);
 
    // handleAddEventClick (No changes)
    const handleAddEventClick = () => {
@@ -498,6 +511,32 @@ function App() {
        }
    };
 
+   // Define the CircleOverlay component
+   const CircleOverlay = ({ center, radius }) => {
+       const mapRef = useRef(null);
+
+       useEffect(() => {
+           if (!center || !radius || !mapRef.current) return;
+            console.log("Make a da circle!");
+           const circle = new window.google.maps.Circle({
+               strokeColor: '#701614',
+               strokeOpacity: 0.5,
+               strokeWeight: 1,
+               fillColor: '#701614',
+               fillOpacity: 0.15,
+               map: mapRef.current,
+               center: center,
+               radius: radius,
+           });
+
+           return () => {
+               circle.setMap(null); // Clean up the circle when the component unmounts
+           };
+       }, [center, radius]);
+
+       return null;
+   };
+
    return (
        <div className="flex flex-col h-screen">
             {/* Header (No changes) */}
@@ -570,6 +609,10 @@ function App() {
                                    </div>
                                </InfoWindow>
                             )}
+                            {/* Render CircleOverlay for each event */}
+                            {events.map(event => (
+                                <CircleOverlay key={event.id} center={event.position} radius={appConfig.event_radius} />
+                            ))}
                        </Map>
                    </APIProvider>
                )}
@@ -607,29 +650,26 @@ function App() {
                            title={ /* Dynamic title */
                                !appConfig ? "Waiting for configuration..." :
                                !currentUserPosition ? "Waiting for location..." :
-                               !temporaryMarkerPosition ? `Click on the map within ${appConfig ? formatDistance(appConfig.event_creation_radius) : 'allowed radius'} to select location` :
+                               !temporaryMarkerPosition ? `Click on the map within ${appConfig ? formatDistance(appConfig.event_creation_radius) : 'allowed radius'} to select location`:
                                isSubmittingEvent ? "Submitting..." :
                                "Add New Item at Selected Location" // Generic "Item"
-                           }
-                       >
-                           Add New Item {/* Generic "Item" */}
-                       </button>
-                   </div>
-               </div>
-           </div>
-
-           {/* Modal (Uses updated Modal component) */}
-           <EventFormModal
-               isOpen={isModalOpen}
-               onClose={handleCloseModal}
-               onSubmit={handleEventSubmit}
-               position={temporaryMarkerPosition}
-               eventDetails={newEventDetails}
-               setEventDetails={setNewEventDetails}
-               isSubmitting={isSubmittingEvent}
-           />
-       </div>
-   );
+                               }
+                               >
+                               Add New Item {/* Generic "Item" */}
+                               </button>
+                               </div>
+                               </div>
+                               </div>{/* Modal (Uses updated Modal component) */}
+       <EventFormModal
+           isOpen={isModalOpen}
+           onClose={handleCloseModal}
+           onSubmit={handleEventSubmit}
+           position={temporaryMarkerPosition}
+           eventDetails={newEventDetails}
+           setEventDetails={setNewEventDetails}
+           isSubmitting={isSubmittingEvent}
+       />
+   </div>);
 }
 
 export default App;
