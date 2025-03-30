@@ -9,7 +9,7 @@ COPY . /app
 
 # Add specific frontend directory for build
 WORKDIR /app/frontend
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --yes --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
 RUN pnpm build
 
 FROM python:3.12-slim AS server-builder
