@@ -545,13 +545,16 @@ function App() {
             {/* Header (No changes) */}
             <header className="bg-indigo-600 text-white p-4 shadow-md z-10 flex justify-between items-center">
                 {/* ... header content ... */}
-                <h1 className="text-2xl font-bold">CollabaMap - Pick a location near you and create an event or landmark!</h1>
-               <div className='text-sm text-right min-w-[150px]'>
+                <div className="flex flex-col">
+                    <h1 className="text-2xl font-bold">CollabaMap</h1>
+                    <p className="text-sm italic mt-1">Pick a location near you and create an event or landmark!</p>
+                </div>
+               {/* <div className='text-sm text-right min-w-[150px]'>
                    {isLoadingConfig && <span>Loading Config...</span>}
                    {configError && <span className="text-red-300 ml-2">{configError}</span>}
                    {!isLoadingConfig && !configError && isLoadingLocation && <span>Locating...</span>}
                    {isReadyToRenderMap && isLoadingEvents && <span></span>}
-               </div>
+               </div> */}
             </header>
 
            {/* Map Area */}
