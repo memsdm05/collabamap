@@ -13,7 +13,6 @@ from starlette.responses import RedirectResponse
 from starlette.middleware.sessions import SessionMiddleware
 from app.models import Event, Report
 from app.routes.api import config, events, reports
-from app.routes import auth
 
 
 # Configure logging
@@ -77,27 +76,12 @@ async def exception_handling_middleware(request, call_next):
             }
         )
 
-# @app.middleware("http")
-# async def check_session_middleware(request: Request, call_next):
-#     print(request.session)
-#     user = request.session.get("user")
-#     if not user and not request.url.path.startswith("/auth/login"):
-#         if request.url.path.startswith("/api"):
-#             return JSONResponse(
-#                 status_code=401,
-#                 content={"detail": "Not authenticated"}
-#             )
-#         else:
-#             return RedirectResponse(url="/auth/login", status_code=303)
-#     return await call_next(request)
-
 # Add API routers
 api_router = APIRouter(prefix="/api")
 api_router.include_router(config.router)
 api_router.include_router(events.router)
 api_router.include_router(reports.router)
 
-app.include_router(auth.router)
 app.include_router(api_router)
 
 # Mount static files last

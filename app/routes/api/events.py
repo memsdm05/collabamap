@@ -6,6 +6,8 @@ from app.schemas import EventCreate, Point, ScoreReturn
 from app.deps import get_coordinates, get_point, get_event_within, get_score
 from app.consts import *
 
+from app.ratelimit import ratelimit
+
 from beanie.odm.operators.find.geospatial import NearSphere
 
 
@@ -33,7 +35,8 @@ async def get_events(coords: tuple[float, float] = Depends(get_coordinates)):
 @router.post("", response_model=Event)
 async def create_event(
     params: EventCreate,
-    point: Point = Depends(get_point)
+    point: Point = Depends(get_point),
+    ratelimit = Depends(ratelimit)
 ):
     """
     Create a new event.
@@ -107,7 +110,8 @@ async def get_event_reports(event: Event = Depends(find_event)):
 async def create_event_report(
     event: Event = Depends(find_event),
     score: int = Depends(get_score),
-    point: Point = Depends(get_point)
+    point: Point = Depends(get_point),
+    ratelimit = Depends(ratelimit)
 ):
     """
     Create a new report for a specific event by ID.

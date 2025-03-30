@@ -56,11 +56,6 @@ async def get_score(create_report: ReportCreate):
     
     return int(create_report.score)
 
-async def get_current_user(request: Request):
-    user = request.session.get("user")
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    return user
 
 async def get_event_within(coords: tuple[float, float] = Depends(get_coordinates)) -> Optional[Event]:
     """
