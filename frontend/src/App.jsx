@@ -529,7 +529,7 @@ function App() {
                            defaultCenter={mapCenter}
                            defaultZoom={initialZoom}
                            mapId={import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || "DEMO_MAP_ID"}
-                           gestureHandling="cooperative"
+                           gestureHandling="auto"
                            onClick={handleMapClick}
                            className="absolute inset-0 w-full h-full"
                            clickableIcons={false}
