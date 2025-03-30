@@ -34,9 +34,8 @@ async def get_events(coords: tuple[float, float] = Depends(get_coordinates)):
     Get all events within radius.
     """
     try:
-        # Get events within 5000 meters (5km) of the provided coordinates
         events = await Event.find(
-            Near(Event.location, coords[0], coords[1], max_distance=5000)
+            Near(Event.location, *coords, max_distance=MAX_RADIUS)
         ).to_list()
         return events
     except Exception as e:
@@ -45,7 +44,7 @@ async def get_events(coords: tuple[float, float] = Depends(get_coordinates)):
 @api.post("/events", response_model=Event)
 async def create_event(
     params: EventCreate,
-    coords: Point = Depends(get_point)
+    point: Point = Depends(get_point)
 ):
     """
     Create a new event.
@@ -54,7 +53,7 @@ async def create_event(
         event = Event(
             title=params.title,
             description=params.description,
-            location=coords
+            location=point
         )
         await event.save()
         return event
