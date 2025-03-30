@@ -30,7 +30,6 @@ function formatDistance(meters) {
 }
 
 // ----- Helper Component: User Location Marker -----
-// Added box-sizing and removed potential interference, but translate is key.
 const UserLocationMarker = () => (
     <div style={{
         width: '16px',
@@ -46,9 +45,7 @@ const UserLocationMarker = () => (
      }} />
 );
 
-
 // ----- Helper Component: Modal -----
-// MODIFIED: Removed 'Generic', conditionally show/require time based on category
 const EventFormModal = ({ isOpen, onClose, onSubmit, position, eventDetails, setEventDetails, isSubmitting }) => {
     if (!isOpen) return null;
 
@@ -212,7 +209,7 @@ function App() {
        const startTime = !isLandmarkCategory && typeof serverEvent.started_at === 'string' ? serverEvent.started_at : null;
        const endTime = !isLandmarkCategory && typeof serverEvent.ended_at === 'string' ? serverEvent.ended_at : null;
        if (!isLandmarkCategory && (!startTime || !endTime) && serverEvent.started_at !== undefined) { // Avoid warning if landmark times are just missing
-            console.warn(`Event ${serverEvent._id} (category: ${serverEvent.category}) has missing/invalid time data:`, {start: serverEvent.started_at, end: serverEvent.ended_at });
+            console.warn(`Event ${serverEvent._id} (category: ${serverEvent.category}) has missing/invalid time data:`, {start: serverEvent.started_at, end: serverEvent.started_at });
        }
 
        return {
@@ -282,48 +279,54 @@ function App() {
    }, [defaultCenter]);
 
 
-   // Effect 2: Fetch initial events AND set up polling (Uses updated mapping function)
-   useEffect(() => {
-       if (isLoadingLocation || isLoadingConfig || !appConfig || mapCenter === defaultCenter) return;
+    // Effect 2: Fetch initial events AND set up polling (Uses updated mapping function)
+    useEffect(() => {
+        if (isLoadingLocation || isLoadingConfig || !appConfig || mapCenter === defaultCenter) return;
 
-       const fetchEvents = async () => {
-           setIsLoadingEvents(true);
-           setError(null);
-           setProximityError(null);
-           const url = `${API_BASE_URL}/events?lat=${mapCenter.lat}&lng=${mapCenter.lng}&radius=${EVENT_FETCH_RADIUS_MILES}`;
-           try {
-               const response = await fetch(url);
-               if (!response.ok) {
-                   throw new Error(`Event fetch failed: ${response.status}`);
-               }
-               const fetchedEventsFromServer = await response.json();
+        const fetchEvents = async () => {
+            setIsLoadingEvents(true);
+            setError(null);
+            setProximityError(null);
+            const url = `${API_BASE_URL}/events?lat=${mapCenter.lat}&lng=${mapCenter.lng}&radius=${EVENT_FETCH_RADIUS_MILES}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Event fetch failed: ${response.status}`);
+                }
+                const fetchedEventsFromServer = await response.json();
 
-               const formattedEvents = fetchedEventsFromServer
-                   .map(mapServerEventToState) // Use updated mapping
-                   .filter(event => event !== null && event.position !== null);
+                const formattedEvents = fetchedEventsFromServer
+                    .map(mapServerEventToState) // Use updated mapping
+                    .filter(event => event !== null && event.position !== null);
 
-               console.log("Formatted Events from GET:", formattedEvents);
-               setEvents(formattedEvents);
+                // Calculate and add distance to each event
+                const eventsWithDistance = formattedEvents.map(event => ({
+                    ...event,
+                    distance: currentUserPosition ? calculateDistance(currentUserPosition, event.position) : null,
+                }));
 
-           } catch (err) {
-               setError(`Event Load failed: ${err.message}`);
-               setEvents([]);
-           } finally {
-               setIsLoadingEvents(false);
-           }
-       };
 
-       // Initial fetch
-       fetchEvents();
+                console.log("Formatted Events from GET:", formattedEvents);
+                setEvents(eventsWithDistance);
 
-       // Set up interval to fetch events every 5 seconds
-       const intervalId = setInterval(fetchEvents, 5000);
+            } catch (err) {
+                setError(`Event Load failed: ${err.message}`);
+                setEvents([]);
+            } finally {
+                setIsLoadingEvents(false);
+            }
+        };
 
-       // Clean up interval on unmount
-       return () => clearInterval(intervalId);
-   // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [mapCenter, isLoadingLocation, isLoadingConfig, appConfig]);
+        // Initial fetch
+        fetchEvents();
 
+        // Set up interval to fetch events every 5 seconds
+        const intervalId = setInterval(fetchEvents, 5000);
+
+        // Clean up interval on unmount
+        return () => clearInterval(intervalId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mapCenter, isLoadingLocation, isLoadingConfig, appConfig, currentUserPosition]);
 
    // ----- EVENT HANDLERS -----
 
@@ -420,7 +423,6 @@ function App() {
                requestBody.end_time = endTime.toISOString();
            } else {
                // Ensure times are not sent for landmarks (explicitly null or omitted)
-               // Omitting is generally cleaner if backend handles it
                 requestBody.start_time = null; // Or omit entirely
                 requestBody.end_time = null;   // Or omit entirely
            }
@@ -742,77 +744,78 @@ function App() {
                                         Click to view score
                                     </button>
 
-                                    {/* Conditionally display times only for 'event' category */}
-                                    {selectedEvent.category === 'event' && (
-                                        <>
-                                            <p className="text-xs text-gray-600">Starts: {formatDisplayDate(selectedEvent.startTime)}</p>
-                                            <p className="text-xs text-gray-600">Ends: {formatDisplayDate(selectedEvent.endTime)}</p>
-                                        </>
-                                    )}
-                                </div>
-                            </InfoWindow>
-                            )}                            
-                            {/* Render CircleOverlay for each event */}
-                            {events.map(event => (
-                                <CircleOverlay key={event.id} center={event.position} radius={appConfig.event_radius} />
-                            ))}
-                       </Map>
-                   </APIProvider>
-               )}
-           </div>
+                                {/* Conditionally display times only for 'event' category */}
+                                {selectedEvent.category === 'event' && (
+                                    <>
+                                        <p className="text-xs text-gray-600">Starts: {formatDisplayDate(selectedEvent.startTime)}</p>
+                                        <p className="text-xs text-gray-600">Ends: {formatDisplayDate(selectedEvent.endTime)}</p>
+                                    </>
+                                )}
+                            </div>
+                        </InfoWindow>
+                        )}                            
+                        {/* Render CircleOverlay for each event */}
+                        {events.map(event => (
+                            <CircleOverlay key={event.id} center={event.position} radius={appConfig.event_radius} />
+                        ))}
+                   </Map>
+               </APIProvider>
+           )}
+       </div>
 
-           {/* Bottom Tab (No structural changes needed, button title updates) */}
-           <div className="bg-gray-800 text-white p-4 shadow-lg z-10">
-               {/* Error Display Area (No changes) */}
-                {(proximityError || error) && ( <div className={`mb-2 p-2 rounded-md text-sm text-center ${ error ? 'bg-red-800 text-red-100' : 'bg-yellow-700 text-yellow-100'}`}> {error || proximityError} </div> )}
+       {/* Bottom Tab (No structural changes needed, button title updates) */}
+       <div className="bg-gray-800 text-white p-4 shadow-lg z-10">
+           {/* Error Display Area (No changes) */}
+            {(proximityError || error) && ( <div className={`mb-2 p-2 rounded-md text-sm text-center ${ error ? 'bg-red-800 text-red-100' : 'bg-yellow-700 text-yellow-100'}`}> {error || proximityError} </div> )}
 
-               <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-                    {/* Event List (No changes) */}
-                   <div className="w-full md:w-2/3 mb-4 md:mb-0">
-                       <h2 className="text-xl font-semibold mb-2">Nearby Items {isLoadingEvents ? `(${events.length})` : `(${events.length})`}</h2>
-                       <div className="max-h-32 overflow-y-auto pr-2">
-                          {/* ... list loading/empty states ... */}
-                          {!isLoadingConfig && !isLoadingEvents && events.length === 0 && (<p className="text-gray-400">No items found nearby or added yet.</p>)}
-                           {(isLoadingConfig || isLoadingEvents) && (<p className="text-gray-400"></p>)}
-                           <ul className="space-y-2">
-                               {events.map(event => (
-                                   <li key={event.id} className="bg-gray-700 p-2 rounded-md cursor-pointer hover:bg-gray-600 transition-colors" onClick={() => handleSelectEvent(event)}>
-                                       <p className="font-semibold">{event.title}</p>
-                                       <p className="text-sm text-gray-300 truncate">{event.description}</p>
-                                   </li>
-                               ))}
-                           </ul>
-                       </div>
+           <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
+                {/* Event List (No changes) */}
+               <div className="w-full md:w-2/3 mb-4 md:mb-0">
+                   <h2 className="text-xl font-semibold mb-2">Nearby Items {isLoadingEvents ? `(${events.length})` : `(${events.length})`}</h2>
+                   <div className="max-h-32 overflow-y-auto pr-2">
+                      {/* ... list loading/empty states ... */}
+                      {!isLoadingConfig && !isLoadingEvents && events.length === 0 && (<p className="text-gray-400">No items found nearby or added yet.</p>)}
+                       {(isLoadingConfig || isLoadingEvents) && (<p className="text-gray-400"></p>)}
+                       <ul className="space-y-2">
+                           {events.map(event => (
+                               <li key={event.id} className="bg-gray-700 p-2 rounded-md cursor-pointer hover:bg-gray-600 transition-colors" onClick={() => handleSelectEvent(event)}>
+                                   <p className="font-semibold">{event.title}</p>
+                                   <p className="text-sm text-gray-300 truncate">{event.description}</p>
+                                   <p className="text-xs text-gray-400">
+                                       {event.distance !== null ? formatDistance(event.distance) : 'Distance Unavailable'}
+                                   </p>
+                               </li>
+                           ))}
+                       </ul>
                    </div>
-                   {/* Add Button */}
-                    <div className="w-full md:w-auto flex justify-center md:justify-end">
-                       <button
-                           onClick={handleAddEventClick}
-                           disabled={!temporaryMarkerPosition || isSubmittingEvent || isLoadingConfig || !appConfig || isLoadingLocation}
-                           className={`px-6 py-3 rounded-lg font-semibold shadow-md transition-colors ${ temporaryMarkerPosition && !isSubmittingEvent && appConfig && !isLoadingLocation ? 'bg-green-500 hover:bg-green-600 text-white cursor-pointer' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
-                           title={ /* Dynamic title */
-                               !appConfig ? "Waiting for configuration..." :
-                               !currentUserPosition ? "Waiting for location..." :
-                               !temporaryMarkerPosition ? `Click on the map within ${appConfig ? formatDistance(appConfig.event_creation_radius) : 'allowed radius'} to select location`:
-                               isSubmittingEvent ? "Submitting..." :
-                               "Add New Item at Selected Location" // Generic "Item"
-                               }
-                               >
-                               Add New Item {/* Generic "Item" */}
-                               </button>
-                               </div>
-                               </div>
-                               </div>{/* Modal (Uses updated Modal component) */}
-       <EventFormModal
-           isOpen={isModalOpen}
-           onClose={handleCloseModal}
-           onSubmit={handleEventSubmit}
-           position={temporaryMarkerPosition}
-           eventDetails={newEventDetails}
-           setEventDetails={setNewEventDetails}
-           isSubmitting={isSubmittingEvent}
-       />
-   </div>);
+               </div>
+               {/* Add Button */}
+                <div className="w-full md:w-auto flex justify-center md:justify-end">
+                   <button
+                       onClick={handleAddEventClick}
+                       disabled={!temporaryMarkerPosition || isSubmittingEvent || isLoadingConfig || !appConfig || isLoadingLocation}
+                       className={`px-6 py-3 rounded-lg font-semibold shadow-md transition-colors ${ temporaryMarkerPosition && !isSubmittingEvent && appConfig && !isLoadingLocation ? 'bg-green-500 hover:bg-green-600 text-white cursor-pointer' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
+                       title={ /* Dynamic title */
+                           !appConfig ? "Waiting for configuration..." :
+                           !currentUserPosition ? "Waiting for location..." :
+                           !temporaryMarkerPosition ? `Click on the map within ${appConfig ? formatDistance(appConfig.event_creation_radius) : 'allowed radius'} to select location`:
+                           isSubmittingEvent ? "Submitting..." :
+                           "Add New Item at Selected Location" // Generic "Item"
+                           }
+                           >
+                           Add New Item {/* Generic "Item" */}
+                           </button>
+                           </div>
+                           </div>
+                           </div>{/* Modal (Uses updated Modal component) */}
+   <EventFormModal
+       isOpen={isModalOpen}
+       onClose={handleCloseModal}
+       onSubmit={handleEventSubmit}
+       position={temporaryMarkerPosition}
+       eventDetails={newEventDetails}
+       setEventDetails={setNewEventDetails}
+       isSubmitting={isSubmittingEvent}
+   /></div>);
 }
-
 export default App;
