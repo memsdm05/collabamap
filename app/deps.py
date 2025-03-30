@@ -3,6 +3,8 @@ from typing import Tuple
 from fastapi import HTTPException
 from .schemas import Point
 
+LatLong = Tuple[float, float]
+
 async def get_coordinates(
     lat: float = Query(..., description="Latitude coordinate"),
     lng: float = Query(..., description="Longitude coordinate")
@@ -34,7 +36,7 @@ async def get_coordinates(
             detail="Longitude must be between -180 and 180 degrees"
         )
     
-    return lat, lng
+    return LatLong
 
-async def get_point(coords: tuple[float, float] = Depends(get_coordinates)):
+async def get_point(coords: LatLong = Depends(get_coordinates)):
     return Point(coordinates=list(coords))

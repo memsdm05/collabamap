@@ -12,13 +12,18 @@ api = APIRouter(
     tags=["api"],
 )
 
+MAX_RADIUS = 10000
+
 @api.get("/events", response_model=List[Event])
-async def get_events():
+async def get_events(coords: tuple[float, float] = Depends(get_coordinates)):
     """
     Get all events within radius.
     """
     try:
-        events = await Event.find_all().to_list()
+        # Get events within 5000 meters (5km) of the provided coordinates
+        events = await Event.find(
+            Near(Event.location, coords[0], coords[1], max_distance=5000)
+        ).to_list()
         return events
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving events: {str(e)}")
@@ -63,8 +68,24 @@ async def get_event_within(coords: Point = Depends(get_coordinates)):
     try:
         print(coords)
         events = await Event.find(
-            Near(Event.geo, *coords, min_distance=1000000)
+            Near(Event.geo, *coords, min_distance=3000)
         ).to_list()
         return events
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving event: {str(e)}")
+    
+@api.delete("/events/{event_id}", response_model=dict)
+async def delete_event(event_id: str):
+    """
+    Delete a specific event by ID.
+    """
+    try:
+        event = await Event.get(event_id)
+        if not event:
+            raise HTTPException(status_code=404, detail="Event not found")
+        
+        await event.delete()
+        return {"message": f"Event {event_id} deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting event: {str(e)}")
+
