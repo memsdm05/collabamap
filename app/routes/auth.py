@@ -38,20 +38,16 @@ async def login(request: Request):
 
 @router.get("")
 async def auth(request: Request):
-    try:
-        token = await oauth.auth0.authorize_access_token(request)
-        user = token.get("userinfo")
-        if user:
-            request.session["user"] = dict(user)
-        return RedirectResponse(url="/")
-    except Exception as e:
-        logging.error(f"Authentication error: {str(e)}")
-        return RedirectResponse(url="/")
+    token = await oauth.auth0.authorize_access_token(request)
+    user = token.get('userinfo')
+    request.session['user'] = dict(user)
+    print(dict(user))
+    return RedirectResponse(url=request.query_params.get('next', '/'))
 
 @router.get("/logout")
 async def logout(request: Request):
     request.session.pop("user", None)
-    return RedirectResponse(
+    return Response(
         url=f"https://{os.environ.get('AUTH0_DOMAIN')}/v2/logout?"
         f"client_id={os.environ.get('AUTH0_CLIENT_ID')}&"
         f"returnTo={request.url_for('homepage')}"

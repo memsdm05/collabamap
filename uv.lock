@@ -121,6 +121,8 @@ dependencies = [
     { name = "openai" },
     { name = "pillow" },
     { name = "python-dotenv" },
+    { name = "starlette" },
+    { name = "starsessions" },
     { name = "uvicorn" },
 ]
 
@@ -134,6 +136,8 @@ requires-dist = [
     { name = "openai", specifier = ">=1.69.0" },
     { name = "pillow", specifier = ">=11.1.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
+    { name = "starlette", specifier = ">=0.46.1" },
+    { name = "starsessions", specifier = ">=2.2.1" },
     { name = "uvicorn", specifier = ">=0.34.0" },
 ]
 
@@ -563,6 +567,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/04/1b/52b27f2e13ceedc79a908e29eac426a63465a1a01248e5f24aa36a62aeb3/starlette-0.46.1.tar.gz", hash = "sha256:3c88d58ee4bd1bb807c0d1acb381838afc7752f9ddaec81bbe4383611d833230", size = 2580102 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/4b/528ccf7a982216885a1ff4908e886b8fb5f19862d1962f56a3fce2435a70/starlette-0.46.1-py3-none-any.whl", hash = "sha256:77c74ed9d2720138b25875133f3a2dae6d854af2ec37dceb56aef370c1d8a227", size = 71995 },
+]
+
+[[package]]
+name = "starsessions"
+version = "2.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "itsdangerous" },
+    { name = "starlette" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/86/a1/dd738cd47b7a1c681cae49c4f7c88cc953b2aca4de455c2aacda6652e7ce/starsessions-2.2.1.tar.gz", hash = "sha256:ce5e4448d9bf2c76222e56cd099ad92d22313e8a4def612e22b71a122cc11da0", size = 15048 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/ce/fc699345a3cdfb4425b5dc1e446f1b49702ac55907a6a4d5d806f2512dae/starsessions-2.2.1-py3-none-any.whl", hash = "sha256:8097b33d70017b2d2331307f0ea923620b5bfb847118d2e5872805d0c1c16f83", size = 14621 },
 ]
 
 [[package]]

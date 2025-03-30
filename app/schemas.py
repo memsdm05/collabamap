@@ -17,6 +17,9 @@ class EventCreate(BaseModel):
     end_time: Optional[datetime] = None
     category: Optional[str] = None
 
+class ReportCreate(BaseModel):
+    score: int
+
 class Config(BaseModel):
     max_radius: float
     event_creation_radius: float

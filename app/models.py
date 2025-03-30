@@ -1,36 +1,66 @@
-from typing import Optional, Annotated
+from typing import Optional, List
 from pydantic import BaseModel
-from beanie import Document, Indexed
+from beanie import Document, Indexed, Link
 import pymongo
 from .schemas import Point
 from datetime import datetime
 
 
+class Report(Document):
+    score: int
+    location: Point
+
+    class Settings:
+        name = "reports"
+        use_state_management = True
+        validate_on_save = True
+        indexes = [("location", pymongo.GEOSPHERE)]
+
 class Event(Document):
     title: str
-    location: Annotated[Point, Indexed(index_type=pymongo.GEOSPHERE)]
+    location: Point
     description: str = "This is a new description"
     category: str = "Generic"
 
     started_at: Optional[datetime] = None
     ended_at: Optional[datetime] = None
 
+    reports: List[Link[Report]] = []
 
-    @property
-    def created_at(self) -> Optional[str]:
+    async def get_weighted_score(self) -> float:
         """
-        Returns the creation timestamp from the document's _id field.
+        Calculate a weighted sum of all report scores, with newer reports having higher weight.
         
-        The MongoDB ObjectId contains a timestamp in its first 4 bytes.
+        Returns:
+            float: The weighted score of the event
         """
-        if hasattr(self, "id") and self.id:
-            # Extract creation time from the ObjectId
-            return self.id.generation_time
-        return None
+        if len(self.reports) == 0:
+            return 0.0
+            
+        total_score = 0.0
+        total_weight = 0.0
+        
+        await self.fetch_all_links()
+
+        reports = self.reports.copy()
+
+        reports.sort(key=lambda r: r.id.generation_time)
+
+        decay_factor = 0.8
+        
+        for i, report in enumerate(reports):
+            # Weight increases with index (newer reports have higher indices)
+            weight = decay_factor ** (len(reports) - i - 1)
+            total_score += report.score * weight
+            total_weight += weight
+        
+        return total_score
     
     class Settings:
         name = "events"
         use_state_management = True
         validate_on_save = True
+        json_schema_extra = {"exclude": ["reports"]}
         indexes = [("location", pymongo.GEOSPHERE)]
-    
+
+
