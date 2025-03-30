@@ -5,9 +5,11 @@ description = "its a map that collaborates"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "authlib>=1.5.1",
     "beanie[srv]>=1.29.0",
     "fastapi>=0.115.12",
     "fastapi-cors>=0.0.6",
+    "itsdangerous>=2.2.0",
     "openai>=1.69.0",
     "pillow>=11.1.0",
     "python-dotenv>=1.1.0",

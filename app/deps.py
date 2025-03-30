@@ -1,4 +1,4 @@
-from fastapi import Depends, Query, status
+from fastapi import Depends, Query, Request, status
 from typing import Tuple
 from fastapi import HTTPException
 from .schemas import Point
@@ -39,3 +39,10 @@ async def get_coordinates(
 
 async def get_point(coords: Tuple[float, float] = Depends(get_coordinates)):
     return Point(coordinates=list(coords))
+
+
+async def get_current_user(request: Request):
+    user = request.session.get("user")
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return user
