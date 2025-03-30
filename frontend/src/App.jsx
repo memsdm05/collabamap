@@ -84,12 +84,12 @@ const EventFormModal = ({ isOpen, onClose, onSubmit, position, eventDetails, set
                    {/* Title */}
                    <div className="mb-4">
                        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                       <input type="text" id="title" name="title" value={eventDetails.title} maxLength={30} onChange={handleChange} required disabled={isSubmitting} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"/>
+                       <input type="text" id="title" name="title" value={eventDetails.title} maxLength={25} onChange={handleChange} required disabled={isSubmitting} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"/>
                    </div>
                    {/* Description */}
                    <div className="mb-4">
                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                       <textarea id="description" name="description" value={eventDetails.description} onChange={handleChange} rows="3" required disabled={isSubmitting} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"></textarea>
+                       <textarea id="description" name="description" value={eventDetails.description} maxLength={40} onChange={handleChange} rows="3" required disabled={isSubmitting} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"></textarea>
                    </div>
                    {/* Category */}
                    <div className="mb-4">
@@ -542,7 +542,7 @@ function App() {
             {/* Header (No changes) */}
             <header className="bg-indigo-600 text-white p-4 shadow-md z-10 flex justify-between items-center">
                 {/* ... header content ... */}
-                <h1 className="text-2xl font-bold">Event Mapper</h1>
+                <h1 className="text-2xl font-bold">CollabaMap - Pick a location near you, and create an event or landmark!</h1>
                <div className='text-sm text-right min-w-[200px]'>
                    {isLoadingConfig && <span>Loading Config...</span>}
                    {configError && <span className="text-red-300 ml-2">{configError}</span>}
