@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 
 from app.models import Event, Report
-from app.schemas import EventCreate, Point
+from app.schemas import EventCreate, Point, ScoreReturn
 from app.deps import get_coordinates, get_point, get_event_within
 from app.consts import *
 
@@ -86,9 +86,9 @@ async def delete_event(event: Event | None = Depends(find_event)):
     return {"message": f"Event {event._id} deleted successfully"}
 
 @router.get("/{event_id}/score")
-async def get_score(event: Event | None = Depends(find_event)):
+async def get_score(event: Event | None = Depends(find_event)) -> ScoreReturn:
     score = await event.get_weighted_score()
-    return {"score": score}
+    return ScoreReturn(score=score)
 
 @router.get("/{event_id}/reports", response_model=List[Report])
 async def get_event_reports(event: Event | None = Depends(find_event)):

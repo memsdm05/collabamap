@@ -20,6 +20,9 @@ class EventCreate(BaseModel):
 class ReportCreate(BaseModel):
     score: int
 
+class ScoreReturn(BaseModel):
+    score: float
+
 class Config(BaseModel):
     max_radius: float
     event_creation_radius: float
