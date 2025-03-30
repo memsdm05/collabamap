@@ -15,3 +15,9 @@ class EventCreate(BaseModel):
     description: str
     start_time: Optional[datetime]
     end_time: Optional[datetime]
+
+class Config(BaseModel):
+    max_radius: float
+    event_creation_radius: float
+    event_radius: float
+    maps_api_key: str

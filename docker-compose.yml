@@ -9,7 +9,7 @@ services:
     depends_on:
       - mongodb
     environment:
-      - VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY}
+      - GOOGLE_MAPS_KEY=${GOOGLE_MAPS_KEY}
       - MONGODB_URI=mongodb://collabamap:collabamap@mongodb:27017
     restart: unless-stopped
     volumes:

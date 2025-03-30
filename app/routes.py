@@ -2,17 +2,31 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 
 from .models import Event
-from .schemas import EventCreate, Point
+from .schemas import EventCreate, Point, Config
 from .deps import get_coordinates, get_point
 
 from beanie.odm.operators.find.geospatial import Near
+
+import os
 
 api = APIRouter(
     prefix="/api",
     tags=["api"],
 )
 
-MAX_RADIUS = 10000
+MAX_RADIUS = 3218.69 # 2mi to meters
+EVENT_CREATION_RADIUS = 100
+EVENT_RADIUS = 20
+
+
+@api.get("/config", response_model=Config)
+async def get_config():
+    return Config(
+        max_radius=MAX_RADIUS,
+        event_creation_radius=EVENT_CREATION_RADIUS,
+        event_radius=EVENT_RADIUS,
+        maps_api_key=os.environ['GOOGLE_MAPS_KEY']
+    )
 
 @api.get("/events", response_model=List[Event])
 async def get_events(coords: tuple[float, float] = Depends(get_coordinates)):
@@ -47,7 +61,7 @@ async def create_event(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating event: {str(e)}")
 
-@api.get("/events/{event_id}", response_model=list[Event])
+@api.get("/events/{event_id}", response_model=Event)
 async def get_event(event_id: str):
     """
     Get a specific event by ID.
@@ -60,7 +74,7 @@ async def get_event(event_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving event: {str(e)}")
     
-@api.get("/events/within")
+@api.get("/events/within", response_model=Event)
 async def get_event_within(coords: Point = Depends(get_coordinates)):
     """
     Get a specific event by ID.
