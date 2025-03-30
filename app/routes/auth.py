@@ -29,6 +29,10 @@ router = APIRouter(
 # Auth routes
 @router.get("/login")
 async def login(request: Request):
+    # Save the intended target path from query params or referrer
+    target_path = request.query_params.get('next', '/')
+    request.session['target_path'] = target_path
+    
     redirect_uri = request.url_for("auth")
     return await oauth.auth0.authorize_redirect(request, redirect_uri)
 

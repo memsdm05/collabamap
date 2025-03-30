@@ -17,6 +17,6 @@ async def get_config():
         max_radius=MAX_RADIUS,
         event_creation_radius=EVENT_CREATION_RADIUS,
         event_radius=EVENT_RADIUS,
-        maps_api_key=os.environ.get("MAPS_API_KEY", "")
+        maps_api_key=os.environ.get("GOOGLE_MAPS_KEY", "")
     )
     return config
