@@ -7,10 +7,10 @@ RUN corepack enable
 WORKDIR /app
 COPY . /app
 
-# This stage doesn't exist and causes an error
-FROM base AS prod-deps
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
-RUN pnpm run build
+# Add specific frontend directory for build
+WORKDIR /app/frontend
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm build
 
 FROM python:3.12-slim AS server-builder
 WORKDIR /app
