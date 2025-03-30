@@ -88,7 +88,11 @@ async def delete_event(event: Event = Depends(find_event)):
 @router.get("/{event_id}/score")
 async def get_weighted_score(event: Event = Depends(find_event)) -> ScoreReturn:
     score = await event.get_weighted_score()
-    return ScoreReturn(score=score)
+
+    if score < 0:
+        await event.delete()
+
+    return ScoreReturn(score=score, deleted=score < 0)
 
 @router.get("/{event_id}/reports", response_model=List[Report])
 async def get_event_reports(event: Event = Depends(find_event)):

@@ -22,6 +22,7 @@ class ReportCreate(BaseModel):
 
 class ScoreReturn(BaseModel):
     score: float
+    deleted: bool = False
 
 class Config(BaseModel):
     max_radius: float
