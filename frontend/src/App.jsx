@@ -585,30 +585,143 @@ function App() {
                            {/* User Location Marker (Uses updated CSS Component) */}
                             {currentUserPosition && ( <AdvancedMarker position={currentUserPosition} title="Your Location" zIndex={10}><UserLocationMarker /></AdvancedMarker> )}
 
-                            {/* MODIFIED: Info Window - Conditional Time Display */}
-                            {selectedEvent && selectedEvent.position && (
-                               <InfoWindow
-                                   position={selectedEvent.position}
-                                   onCloseClick={() => setSelectedEvent(null)}
-                               >
-                                    <div className="text-black p-2 max-w-xs">
-                                       <h3 className="font-bold text-lg mb-1">{selectedEvent.title}</h3>
-                                       {/* Display Category */}
-                                       <p className="text-sm mb-1 capitalize">
-                                           <strong>Category:</strong> {selectedEvent.category} {/* Capitalize for display */}
-                                       </p>
-                                       <p className="text-sm mb-2">{selectedEvent.description}</p>
+                            // ... existing code ...
 
-                                       {/* Conditionally display times only for 'event' category */}
-                                       {selectedEvent.category === 'event' && (
-                                           <>
-                                               <p className="text-xs text-gray-600">Starts: {formatDisplayDate(selectedEvent.startTime)}</p>
-                                               <p className="text-xs text-gray-600">Ends: {formatDisplayDate(selectedEvent.endTime)}</p>
-                                           </>
-                                       )}
-                                   </div>
-                               </InfoWindow>
-                            )}
+                            {/* MODIFIED: Info Window - Added Voting Buttons */}
+                            {selectedEvent && selectedEvent.position && (
+                            <InfoWindow
+                                position={selectedEvent.position}
+                                onCloseClick={() => setSelectedEvent(null)}
+                            >
+                                <div className="text-black p-2 max-w-xs">
+                                    {/* Title and Vote Buttons Row */}
+                                    <div className="flex justify-between items-start mb-1">
+                                        <h3 className="font-bold text-lg">{selectedEvent.title}</h3>
+                                        <div className="flex gap-1">
+                                            <button 
+                                                className="bg-green-500 hover:bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    fetch(`/api/events/${selectedEvent.id}/reports?lat=${mapCenter.lat}&lng=${mapCenter.lng}`, {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type': 'application/json',
+                                                        },
+                                                        body: JSON.stringify({ score: 1 }),
+                                                    })
+                                                    .then(response => {
+                                                        if (!response.ok) {
+                                                            throw new Error('Failed to upvote');
+                                                        }
+                                                        console.log('Upvote successful:', selectedEvent.id);
+                                                        // Update score after upvote
+                                                        return fetch(`/api/events/${selectedEvent.id}/score?lat=${mapCenter.lat}&lng=${mapCenter.lng}`);
+                                                    })
+                                                    .then(response => {
+                                                        if (!response.ok) {
+                                                            throw new Error('Failed to fetch score');
+                                                        }
+                                                        return response.json();
+                                                    })
+                                                    .then(data => {
+                                                        const scoreElement = document.getElementById(`score-${selectedEvent.id}`);
+                                                        if (scoreElement) {
+                                                            const roundedScore = Math.round(data.score * 100) / 100;
+                                                            scoreElement.textContent = `Score: ${roundedScore}`;
+                                                        }
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('Error upvoting or fetching score:', error);
+                                                    });
+                                                }}
+                                            >
+                                                ↑
+                                            </button>
+                                            <button 
+                                                className="bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    fetch(`/api/events/${selectedEvent.id}/reports?lat=${mapCenter.lat}&lng=${mapCenter.lng}`, {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type': 'application/json',
+                                                        },
+                                                        body: JSON.stringify({ score: -1 }),
+                                                    })
+                                                    .then(response => {
+                                                        if (!response.ok) {
+                                                            throw new Error('Failed to downvote');
+                                                        }
+                                                        console.log('Downvote successful:', selectedEvent.id);
+                                                        // Update score after downvote
+                                                        return fetch(`/api/events/${selectedEvent.id}/score?lat=${mapCenter.lat}&lng=${mapCenter.lng}`);
+                                                    })
+                                                    .then(response => {
+                                                        if (!response.ok) {
+                                                            throw new Error('Failed to fetch score');
+                                                        }
+                                                        return response.json();
+                                                    })
+                                                    .then(data => {
+                                                        const scoreElement = document.getElementById(`score-${selectedEvent.id}`);
+                                                        if (scoreElement) {
+                                                            const roundedScore = Math.round(data.score * 100) / 100;
+                                                            scoreElement.textContent = `Score: ${roundedScore}`;
+                                                        }
+                                                    })
+                                                    .catch(error => {
+                                                        console.error('Error downvoting or fetching score:', error);
+                                                    });
+                                                }}
+                                            >
+                                                ↓
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {/* Category */}
+                                    <p className="text-sm mb-1 capitalize">
+                                        <strong>Category:</strong> {selectedEvent.category}
+                                    </p>
+                                    <p className="text-sm mb-2">{selectedEvent.description}</p>
+
+                                    {/* Score Display */}
+                                    <button 
+                                        id={`score-${selectedEvent.id}`}
+                                        className="text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded mb-2"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            fetch(`/api/events/${selectedEvent.id}/score?lat=${mapCenter.lat}&lng=${mapCenter.lng}`)
+                                                .then(response => {
+                                                    if (!response.ok) {
+                                                        throw new Error('Failed to fetch score');
+                                                    }
+                                                    return response.json();
+                                                })
+                                                .then(data => {
+                                                    const scoreElement = e.target;
+                                                    const roundedScore = Math.round(data.score * 100) / 100;
+                                                    scoreElement.textContent = `Score: ${roundedScore}`;
+                                                    scoreElement.disabled = true;
+                                                    scoreElement.classList.remove('hover:bg-blue-200');
+                                                })
+                                                .catch(error => {
+                                                    console.error('Error fetching score:', error);
+                                                });
+                                        }}
+                                    >
+                                        Click to view score
+                                    </button>
+
+                                    {/* Conditionally display times only for 'event' category */}
+                                    {selectedEvent.category === 'event' && (
+                                        <>
+                                            <p className="text-xs text-gray-600">Starts: {formatDisplayDate(selectedEvent.startTime)}</p>
+                                            <p className="text-xs text-gray-600">Ends: {formatDisplayDate(selectedEvent.endTime)}</p>
+                                        </>
+                                    )}
+                                </div>
+                            </InfoWindow>
+                            )}                            
                             {/* Render CircleOverlay for each event */}
                             {events.map(event => (
                                 <CircleOverlay key={event.id} center={event.position} radius={appConfig.event_radius} />

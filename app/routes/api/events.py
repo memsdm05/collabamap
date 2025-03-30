@@ -3,7 +3,7 @@ from typing import List
 
 from app.models import Event, Report
 from app.schemas import EventCreate, Point, ScoreReturn
-from app.deps import get_coordinates, get_point, get_event_within
+from app.deps import get_coordinates, get_point, get_event_within, get_score
 from app.consts import *
 
 from beanie.odm.operators.find.geospatial import NearSphere
@@ -14,7 +14,7 @@ router = APIRouter(
     tags=["events"],
 )
 
-async def find_event(event_id: str) -> Event | None:
+async def find_event(event_id: str) -> Event:
     event = await Event.get(event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -61,7 +61,7 @@ async def create_event(
     return event
 
 @router.get("/{event_id}", response_model=Event)
-async def get_event(event: Event | None = Depends(find_event)):
+async def get_event(event: Event = Depends(find_event)):
     """
     Get a specific event by ID.
     """
@@ -77,7 +77,7 @@ async def get_event_within_endpoint(event: Event = Depends(get_event_within)):
     return event
     
 @router.delete("/{event_id}", response_model=dict)
-async def delete_event(event: Event | None = Depends(find_event)):
+async def delete_event(event: Event = Depends(find_event)):
     """
     Delete a specific event by ID.
     """
@@ -86,15 +86,36 @@ async def delete_event(event: Event | None = Depends(find_event)):
     return {"message": f"Event {event._id} deleted successfully"}
 
 @router.get("/{event_id}/score")
-async def get_score(event: Event | None = Depends(find_event)) -> ScoreReturn:
+async def get_weighted_score(event: Event = Depends(find_event)) -> ScoreReturn:
     score = await event.get_weighted_score()
     return ScoreReturn(score=score)
 
 @router.get("/{event_id}/reports", response_model=List[Report])
-async def get_event_reports(event: Event | None = Depends(find_event)):
+async def get_event_reports(event: Event = Depends(find_event)):
     """
     Get all reports associated with a specific event.
     """
     # Fetch all reports linked to this event
     await event.fetch_all_links()
     return event.reports
+
+@router.post("/{event_id}/reports", response_model=Report)
+async def create_event_report(
+    event: Event = Depends(find_event),
+    score: int = Depends(get_score),
+    point: Point = Depends(get_point)
+):
+    """
+    Create a new report for a specific event by ID.
+    """
+
+    report = Report(
+        location=point,
+        score=score
+    )
+
+    event.reports.append(report)
+    
+    await report.save()
+    await event.save()
+    return report

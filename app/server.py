@@ -52,12 +52,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# # Add SessionMiddleware first
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=os.environ["APP_SECRET_KEY"],
-)
-
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,

@@ -1,3 +1,10 @@
+import os
+
 MAX_RADIUS = 3218.69 # 2mi to meters
 EVENT_CREATION_RADIUS = 100
 EVENT_RADIUS = 20
+
+# JWT settings
+JWT_SECRET_KEY = os.environ.get("APP_SECRET_KEY")
+JWT_ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
