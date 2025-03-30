@@ -184,7 +184,7 @@ function App() {
    }
    // ----- Helper Function: Format distance -----
    function formatDistance(meters) {
-       if (meters < 1000) return `${meters.toFixed(0)} meters`;
+       if (meters < 1000) return `${meters.toFixed(0)} m`;
        return `${(meters / 1000).toFixed(1)} km`;
    }
 
@@ -782,9 +782,31 @@ function App() {
                            {(isLoadingConfig || isLoadingEvents) && (<p className="text-gray-400"></p>)}
                            <ul className="space-y-2">
                                {events.map(event => (
-                                   <li key={event.id} className="bg-gray-700 p-2 rounded-md cursor-pointer hover:bg-gray-600 transition-colors" onClick={() => handleSelectEvent(event)}>
-                                       <p className="font-semibold">{event.title}</p>
-                                       <p className="text-sm text-gray-300 truncate">{event.description}</p>
+                                   <li key={event.id} className="bg-gray-700 p-2 rounded-md cursor-pointer hover:bg-gray-600 transition-colors">
+                                       <div className="flex flex-col">
+                                           <div onClick={() => handleSelectEvent(event)}>
+                                               <p className="font-semibold">{event.title}</p>
+                                               <p className="text-sm text-gray-300 truncate">{event.description}</p>
+                                           </div>
+                                           <div className="flex justify-between w-full mt-1">
+                                               {event.distance && (
+                                                   <span className="text-xs text-gray-300">
+                                                       {formatDistance(event.distance)}
+                                                   </span>
+                                               )}
+                                               {event.position && (
+                                                   <a 
+                                                       href={`https://www.google.com/maps/dir/?api=1&destination=${event.position.lat},${event.position.lng}`}
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       className="text-xs text-blue-300 hover:text-blue-200"
+                                                       onClick={(e) => e.stopPropagation()}
+                                                   >
+                                                       Get Directions
+                                                   </a>
+                                               )}
+                                           </div>
+                                       </div>
                                    </li>
                                ))}
                            </ul>
