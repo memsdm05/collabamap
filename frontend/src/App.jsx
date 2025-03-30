@@ -282,17 +282,20 @@ function App() {
    }, [defaultCenter]);
 
 
-    // Effect 2: Fetch initial events (Uses updated mapping function)
+   // Effect 2: Fetch initial events AND set up polling (Uses updated mapping function)
    useEffect(() => {
-       // ... fetch events logic ... uses mapServerEventToState ...
-        if (isLoadingLocation || isLoadingConfig || !appConfig || mapCenter === defaultCenter) return;
+       if (isLoadingLocation || isLoadingConfig || !appConfig || mapCenter === defaultCenter) return;
 
        const fetchEvents = async () => {
-           setIsLoadingEvents(true); setError(null); setProximityError(null);
+           setIsLoadingEvents(true);
+           setError(null);
+           setProximityError(null);
            const url = `${API_BASE_URL}/events?lat=${mapCenter.lat}&lng=${mapCenter.lng}&radius=${EVENT_FETCH_RADIUS_MILES}`;
            try {
                const response = await fetch(url);
-               if (!response.ok) throw new Error(`Event fetch failed: ${response.status}`);
+               if (!response.ok) {
+                   throw new Error(`Event fetch failed: ${response.status}`);
+               }
                const fetchedEventsFromServer = await response.json();
 
                const formattedEvents = fetchedEventsFromServer
@@ -302,10 +305,22 @@ function App() {
                console.log("Formatted Events from GET:", formattedEvents);
                setEvents(formattedEvents);
 
-           } catch (err) { setError(`Event Load failed: ${err.message}`); setEvents([]); }
-           finally { setIsLoadingEvents(false); }
+           } catch (err) {
+               setError(`Event Load failed: ${err.message}`);
+               setEvents([]);
+           } finally {
+               setIsLoadingEvents(false);
+           }
        };
+
+       // Initial fetch
        fetchEvents();
+
+       // Set up interval to fetch events every 5 seconds
+       const intervalId = setInterval(fetchEvents, 5000);
+
+       // Clean up interval on unmount
+       return () => clearInterval(intervalId);
    // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [mapCenter, isLoadingLocation, isLoadingConfig, appConfig]);
 
@@ -493,7 +508,7 @@ function App() {
                    {isLoadingConfig && <span>Loading Config...</span>}
                    {configError && <span className="text-red-300 ml-2">{configError}</span>}
                    {!isLoadingConfig && !configError && isLoadingLocation && <span>Locating...</span>}
-                   {isReadyToRenderMap && isLoadingEvents && <span>Loading Events...</span>}
+                   {isReadyToRenderMap && isLoadingEvents && <span></span>}
                </div>
             </header>
 
@@ -568,11 +583,11 @@ function App() {
                <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
                     {/* Event List (No changes) */}
                    <div className="w-full md:w-2/3 mb-4 md:mb-0">
-                       <h2 className="text-xl font-semibold mb-2">Nearby Items {isLoadingEvents ? '(Loading...)' : `(${events.length})`}</h2>
+                       <h2 className="text-xl font-semibold mb-2">Nearby Items {isLoadingEvents ? `(${events.length})` : `(${events.length})`}</h2>
                        <div className="max-h-32 overflow-y-auto pr-2">
                           {/* ... list loading/empty states ... */}
                           {!isLoadingConfig && !isLoadingEvents && events.length === 0 && (<p className="text-gray-400">No items found nearby or added yet.</p>)}
-                           {(isLoadingConfig || isLoadingEvents) && (<p className="text-gray-400">Loading...</p>)}
+                           {(isLoadingConfig || isLoadingEvents) && (<p className="text-gray-400"></p>)}
                            <ul className="space-y-2">
                                {events.map(event => (
                                    <li key={event.id} className="bg-gray-700 p-2 rounded-md cursor-pointer hover:bg-gray-600 transition-colors" onClick={() => handleSelectEvent(event)}>
