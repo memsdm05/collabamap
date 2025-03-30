@@ -1,11 +1,8 @@
 from authlib.integrations.starlette_client import OAuth
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
-from fastapi import APIRouter, Depends, HTTPException
-from starlette.requests import Request
-import logging
+from fastapi import APIRouter, Response
 import os
-
 
 # Configure Auth0
 oauth = OAuth()

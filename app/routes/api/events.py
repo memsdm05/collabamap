@@ -14,6 +14,12 @@ router = APIRouter(
     tags=["events"],
 )
 
+async def find_event(event_id: str) -> Event | None:
+    event = await Event.get(event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return event
+
 @router.get("", response_model=List[Event])
 async def get_events(coords: tuple[float, float] = Depends(get_coordinates)):
     """
@@ -55,13 +61,10 @@ async def create_event(
     return event
 
 @router.get("/{event_id}", response_model=Event)
-async def get_event(event_id: str):
+async def get_event(event: Event | None = Depends(find_event)):
     """
     Get a specific event by ID.
     """
-    event = await Event.get(event_id)
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
     return event
     
 
@@ -74,32 +77,24 @@ async def get_event_within_endpoint(event: Event = Depends(get_event_within)):
     return event
     
 @router.delete("/{event_id}", response_model=dict)
-async def delete_event(event_id: str):
+async def delete_event(event: Event | None = Depends(find_event)):
     """
     Delete a specific event by ID.
     """
-    event = await Event.get(event_id)
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
     
     await event.delete()
-    return {"message": f"Event {event_id} deleted successfully"}
+    return {"message": f"Event {event._id} deleted successfully"}
+
+@router.get("/{event_id}/score")
+async def get_score(event: Event | None = Depends(find_event)):
+    score = await event.get_weighted_score()
+    return {"score": score}
 
 @router.get("/{event_id}/reports", response_model=List[Report])
-async def get_event_reports(event_id: str):
+async def get_event_reports(event: Event | None = Depends(find_event)):
     """
     Get all reports associated with a specific event.
     """
-    event = await Event.get(event_id)
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-    
     # Fetch all reports linked to this event
-    reports = []
-    if event.reports:
-        for report_link in event.reports:
-            report = await report_link.fetch()
-            if report:
-                reports.append(report)
-    
-    return reports
+    await event.fetch_all_links()
+    return event.reports
