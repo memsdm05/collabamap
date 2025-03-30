@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { APIProvider, Map, AdvancedMarker, InfoWindow, Pin } from '@vis.gl/react-google-maps';
+import InstallPWA from './components/InstallPWA';
 
 // ----- Helper Function: Haversine Distance -----
 // MODIFIED: Returns distance in METERS
@@ -768,54 +769,53 @@ function App() {
            {/* Error Display Area (No changes) */}
             {(proximityError || error) && ( <div className={`mb-2 p-2 rounded-md text-sm text-center ${ error ? 'bg-red-800 text-red-100' : 'bg-yellow-700 text-yellow-100'}`}> {error || proximityError} </div> )}
 
-           <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-                {/* Event List (No changes) */}
-               <div className="w-full md:w-2/3 mb-4 md:mb-0">
-                   <h2 className="text-xl font-semibold mb-2">Nearby Items {isLoadingEvents ? `(${events.length})` : `(${events.length})`}</h2>
-                   <div className="max-h-32 overflow-y-auto pr-2">
-                      {/* ... list loading/empty states ... */}
-                      {!isLoadingConfig && !isLoadingEvents && events.length === 0 && (<p className="text-gray-400">No items found nearby or added yet.</p>)}
-                       {(isLoadingConfig || isLoadingEvents) && (<p className="text-gray-400"></p>)}
-                       <ul className="space-y-2">
-                           {events.map(event => (
-                               <li key={event.id} className="bg-gray-700 p-2 rounded-md cursor-pointer hover:bg-gray-600 transition-colors" onClick={() => handleSelectEvent(event)}>
-                                   <p className="font-semibold">{event.title}</p>
-                                   <p className="text-sm text-gray-300 truncate">{event.description}</p>
-                                   <p className="text-xs text-gray-400">
-                                       {event.distance !== null ? formatDistance(event.distance) : 'Distance Unavailable'}
-                                   </p>
-                               </li>
-                           ))}
-                       </ul>
+               <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
+                    {/* Event List (No changes) */}
+                   <div className="w-full md:w-2/3 mb-4 md:mb-0">
+                       <h2 className="text-xl font-semibold mb-2">Nearby Items {isLoadingEvents ? `(${events.length})` : `(${events.length})`}</h2>
+                       <div className="max-h-32 overflow-y-auto pr-2">
+                          {/* ... list loading/empty states ... */}
+                          {!isLoadingConfig && !isLoadingEvents && events.length === 0 && (<p className="text-gray-400">No items found nearby or added yet.</p>)}
+                           {(isLoadingConfig || isLoadingEvents) && (<p className="text-gray-400"></p>)}
+                           <ul className="space-y-2">
+                               {events.map(event => (
+                                   <li key={event.id} className="bg-gray-700 p-2 rounded-md cursor-pointer hover:bg-gray-600 transition-colors" onClick={() => handleSelectEvent(event)}>
+                                       <p className="font-semibold">{event.title}</p>
+                                       <p className="text-sm text-gray-300 truncate">{event.description}</p>
+                                   </li>
+                               ))}
+                           </ul>
+                       </div>
                    </div>
-               </div>
-               {/* Add Button */}
-                <div className="w-full md:w-auto flex justify-center md:justify-end">
-                   <button
-                       onClick={handleAddEventClick}
-                       disabled={!temporaryMarkerPosition || isSubmittingEvent || isLoadingConfig || !appConfig || isLoadingLocation}
-                       className={`px-6 py-3 rounded-lg font-semibold shadow-md transition-colors ${ temporaryMarkerPosition && !isSubmittingEvent && appConfig && !isLoadingLocation ? 'bg-green-500 hover:bg-green-600 text-white cursor-pointer' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
-                       title={ /* Dynamic title */
-                           !appConfig ? "Waiting for configuration..." :
-                           !currentUserPosition ? "Waiting for location..." :
-                           !temporaryMarkerPosition ? `Click on the map within ${appConfig ? formatDistance(appConfig.event_creation_radius) : 'allowed radius'} to select location`:
-                           isSubmittingEvent ? "Submitting..." :
-                           "Add New Item at Selected Location" // Generic "Item"
-                           }
-                           >
-                           Add New Item {/* Generic "Item" */}
-                           </button>
-                           </div>
-                           </div>
-                           </div>{/* Modal (Uses updated Modal component) */}
-   <EventFormModal
-       isOpen={isModalOpen}
-       onClose={handleCloseModal}
-       onSubmit={handleEventSubmit}
-       position={temporaryMarkerPosition}
-       eventDetails={newEventDetails}
-       setEventDetails={setNewEventDetails}
-       isSubmitting={isSubmittingEvent}
-   /></div>);
+                   {/* Add Button and Install Button */}
+                    <div className="w-full md:w-auto flex justify-center md:justify-end space-x-4">
+                       <InstallPWA />
+                       <button
+                           onClick={handleAddEventClick}
+                           disabled={!temporaryMarkerPosition || isSubmittingEvent || isLoadingConfig || !appConfig || isLoadingLocation}
+                           className={`px-6 py-3 rounded-lg font-semibold shadow-md transition-colors ${ temporaryMarkerPosition && !isSubmittingEvent && appConfig && !isLoadingLocation ? 'bg-green-500 hover:bg-green-600 text-white cursor-pointer' : 'bg-gray-500 text-gray-300 cursor-not-allowed'}`}
+                           title={ /* Dynamic title */
+                               !appConfig ? "Waiting for configuration..." :
+                               !currentUserPosition ? "Waiting for location..." :
+                               !temporaryMarkerPosition ? `Click on the map within ${appConfig ? formatDistance(appConfig.event_creation_radius) : 'allowed radius'} to select location`:
+                               isSubmittingEvent ? "Submitting..." :
+                               "Add New Item at Selected Location" // Generic "Item"
+                               }
+                               >
+                               Add New Item {/* Generic "Item" */}
+                               </button>
+                               </div>
+                               </div>
+                               </div>{/* Modal (Uses updated Modal component) */}
+       <EventFormModal
+           isOpen={isModalOpen}
+           onClose={handleCloseModal}
+           onSubmit={handleEventSubmit}
+           position={temporaryMarkerPosition}
+           eventDetails={newEventDetails}
+           setEventDetails={setNewEventDetails}
+           isSubmitting={isSubmittingEvent}
+       />
+   </div>);
 }
 export default App;
