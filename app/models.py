@@ -1,13 +1,14 @@
-from typing import Optional, Tuple
+from typing import Optional, Annotated
 from pydantic import BaseModel
-from beanie import Document
+from beanie import Document, Indexed
+import pymongo
 from .schemas import Point
 from datetime import datetime
 
 
 class Event(Document):
     title: str
-    location: Point
+    location: Annotated[Point, Indexed(index_type=pymongo.GEOSPHERE)]
     description: str = "This is a new description"
     category: str = "Generic"
 
@@ -31,13 +32,5 @@ class Event(Document):
         name = "events"
         use_state_management = True
         validate_on_save = True
-        # Ensure created_at is included in the JSON response
-        model_dump_include = {"created_at"}
+        indexes = [("location", pymongo.GEOSPHERE)]
     
-    class Config:        
-        indexes = [
-            {
-                "key": [("location", "2dsphere")],
-                "name": "location_2dsphere"
-            }
-        ]

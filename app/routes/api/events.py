@@ -4,7 +4,7 @@ from typing import List
 from app.models import Event
 from app.schemas import EventCreate, Point
 from app.deps import get_coordinates, get_point
-from beanie.odm.operators.find.geospatial import Near
+from beanie.odm.operators.find.geospatial import NearSphere
 
 from app.consts import *
 
@@ -19,7 +19,7 @@ async def get_events(coords: tuple[float, float] = Depends(get_coordinates)):
     Get all events within radius.
     """
     events = await Event.find(
-        Near(Event.location, *coords, max_distance=MAX_RADIUS)
+        NearSphere(Event.location, *coords, max_distance=MAX_RADIUS)
     ).to_list()
     return events
 
@@ -34,8 +34,15 @@ async def create_event(
     event = Event(
         title=params.title,
         description=params.description,
-        location=point
+        location=point,
     )
+    if params.category:
+        event.category = params.category
+    if params.start_time:
+        event.started_at = params.start_time
+    if params.end_time:
+        event.ended_at = params.end_time
+    
     await event.save()
     return event
 
@@ -55,7 +62,7 @@ async def get_event_within(coords: Point = Depends(get_coordinates)):
     Check to see if lat long is within event.
     """
     event = await Event.find_one(
-        Near(Event.geo, *coords, min_distance=EVENT_RADIUS)
+        NearSphere(Event.geo, *coords, min_distance=EVENT_RADIUS)
     )
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")

@@ -13,9 +13,9 @@ class EventCreate(BaseModel):
     """
     title: str
     description: str
-    start_time: Optional[datetime]
-    end_time: Optional[datetime]
-    category: Optional[str]
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    category: Optional[str] = None
 
 class Config(BaseModel):
     max_radius: float
