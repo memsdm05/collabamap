@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -13,6 +11,19 @@ services:
     environment:
       - MONGODB_URI=mongodb://collabamap:collabamap@mongodb:27017
     restart: unless-stopped
+    volumes:
+      - ./app:/app/app
+      - ./pyproject.toml:/app/pyproject.toml
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./app
+          target: /app/app
+        - action: sync+restart
+          path: ./frontend
+          target: /app/frontend
+    networks:
+      - collabamap-network
 
   mongodb:
     image: mongo:latest
@@ -25,6 +36,8 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=collabamap
       - MONGO_INITDB_ROOT_PASSWORD=collabamap
     restart: unless-stopped
+    networks:
+      - collabamap-network
 
   mongo-express:
     image: mongo-express:latest
@@ -35,9 +48,17 @@ services:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=collabamap
       - ME_CONFIG_MONGODB_ADMINPASSWORD=collabamap
       - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_URL=mongodb://collabamap:collabamap@mongodb:27017/
     depends_on:
       - mongodb
     restart: unless-stopped
+    networks:
+      - collabamap-network
+
+networks:
+  collabamap-network:
+    driver: bridge
 
 volumes:
   mongodb_data:

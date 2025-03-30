@@ -34,5 +34,7 @@ async def get_coordinates(
             detail="Longitude must be between -180 and 180 degrees"
         )
     
-    return Point(coordinates=[lat, lng])
+    return lat, lng
 
+async def get_point(coords: tuple[float, float] = Depends(get_coordinates)):
+    return Point(coordinates=list(coords))
