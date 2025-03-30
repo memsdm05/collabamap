@@ -42,7 +42,7 @@ function App() {
         <div className="flex flex-col">
           {/* Google Map Component */}
           <div className="w-full h-96 rounded-lg overflow-hidden mb-6">
-            <APIProvider apiKey="AIzaSyCroenb3Of29AQwc1_zMFMLoMa52fxiUjw">
+            <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
               <Map
                 defaultCenter={center}
                 defaultZoom={4}
