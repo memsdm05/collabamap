@@ -602,6 +602,7 @@ function App() {
                                                 className="bg-green-500 hover:bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
+                                                    const button = e.currentTarget;
                                                     fetch(`/api/events/${selectedEvent.id}/reports?lat=${mapCenter.lat}&lng=${mapCenter.lng}`, {
                                                         method: 'POST',
                                                         headers: {
@@ -614,6 +615,15 @@ function App() {
                                                             throw new Error('Failed to upvote');
                                                         }
                                                         console.log('Upvote successful:', selectedEvent.id);
+                                                        // Play bounce animation
+                                                        button.animate([
+                                                            { transform: 'scale(1)' },
+                                                            { transform: 'scale(1.3)' },
+                                                            { transform: 'scale(1)' }
+                                                        ], {
+                                                            duration: 300,
+                                                            easing: 'ease-in-out'
+                                                        });
                                                         // Update score after upvote
                                                         return fetch(`/api/events/${selectedEvent.id}/score?lat=${mapCenter.lat}&lng=${mapCenter.lng}`);
                                                     })
@@ -641,6 +651,7 @@ function App() {
                                                 className="bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
+                                                    const button = e.currentTarget;
                                                     fetch(`/api/events/${selectedEvent.id}/reports?lat=${mapCenter.lat}&lng=${mapCenter.lng}`, {
                                                         method: 'POST',
                                                         headers: {
@@ -653,6 +664,15 @@ function App() {
                                                             throw new Error('Failed to downvote');
                                                         }
                                                         console.log('Downvote successful:', selectedEvent.id);
+                                                        // Play bounce animation
+                                                        button.animate([
+                                                            { transform: 'scale(1)' },
+                                                            { transform: 'scale(1.3)' },
+                                                            { transform: 'scale(1)' }
+                                                        ], {
+                                                            duration: 300,
+                                                            easing: 'ease-in-out'
+                                                        });
                                                         // Update score after downvote
                                                         return fetch(`/api/events/${selectedEvent.id}/score?lat=${mapCenter.lat}&lng=${mapCenter.lng}`);
                                                     })
@@ -690,6 +710,7 @@ function App() {
                                         className="text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded mb-2"
                                         onClick={(e) => {
                                             e.stopPropagation();
+                                            const button = e.currentTarget;
                                             fetch(`/api/events/${selectedEvent.id}/score?lat=${mapCenter.lat}&lng=${mapCenter.lng}`)
                                                 .then(response => {
                                                     if (!response.ok) {
@@ -703,6 +724,15 @@ function App() {
                                                     scoreElement.textContent = `Score: ${roundedScore}`;
                                                     scoreElement.disabled = true;
                                                     scoreElement.classList.remove('hover:bg-blue-200');
+                                                    // Play bounce animation
+                                                    button.animate([
+                                                        { transform: 'scale(1)' },
+                                                        { transform: 'scale(1.1)' },
+                                                        { transform: 'scale(1)' }
+                                                    ], {
+                                                        duration: 300,
+                                                        easing: 'ease-in-out'
+                                                    });
                                                 })
                                                 .catch(error => {
                                                     console.error('Error fetching score:', error);
